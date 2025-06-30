@@ -1,0 +1,18 @@
+{
+  "builds": [
+    {
+      "src": "api/callback.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/callback",
+      "dest": "/api/callback"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
+    }
+  ]
+}
