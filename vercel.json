@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/callback.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/callback",
+      "destination": "/api/callback"
+    }
+  ]
+}

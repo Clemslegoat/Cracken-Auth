@@ -1,0 +1,14 @@
+{
+  "name": "cracken-launcher-oauth",
+  "version": "1.0.0",
+  "description": "Serveur OAuth callback pour Cracken Launcher",
+  "main": "api/callback.js",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build step required'",
+    "start": "echo 'Deployed on Vercel'"
+  },
+  "keywords": ["oauth", "google", "callback", "cracken", "launcher"],
+  "author": "Cracken Launcher",
+  "license": "MIT"
+}
