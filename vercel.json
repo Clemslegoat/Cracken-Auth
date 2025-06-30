@@ -1,8 +1,11 @@
 {
+  "functions": {
+    "callback.js": "@vercel/node"
+  },
   "rewrites": [
     {
       "source": "/callback",
-      "destination": "/api/callback"
+      "destination": "/callback"
     }
   ]
 }
