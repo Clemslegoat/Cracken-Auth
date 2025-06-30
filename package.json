@@ -2,7 +2,7 @@
   "name": "cracken-launcher-oauth-server",
   "version": "1.0.0",
   "description": "Serveur OAuth callback pour Cracken Launcher",
-  "main": "api/callback.js",
+  "main": "callback.js",
   "type": "module",
   "scripts": {
     "dev": "vercel dev",
