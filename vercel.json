@@ -1,11 +1,4 @@
 {
-  "buildCommand": "echo 'No build required'",
-  "outputDirectory": "public",
-  "functions": {
-    "api/callback.js": {
-      "runtime": "@vercel/node"
-    }
-  },
   "rewrites": [
     {
       "source": "/callback",
