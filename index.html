@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cracken Launcher OAuth Server</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            padding: 50px 20px;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+        }
+        h1 { font-size: 2.5em; margin-bottom: 20px; }
+        p { font-size: 1.2em; line-height: 1.6; margin-bottom: 20px; }
+        .status { color: #4CAF50; font-weight: bold; }
+        .endpoint { 
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px;
+            border-radius: 10px;
+            font-family: monospace;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Cracken Launcher OAuth Server</h1>
+        <p class="status">✅ Serveur en ligne et fonctionnel</p>
+        <p>Ce serveur gère les callbacks d'authentification Google OAuth pour le Cracken Launcher.</p>
+        
+        <h3>📡 Endpoints disponibles :</h3>
+        <div class="endpoint">/callback - Callback OAuth Google</div>
+        
+        <p><strong>Version :</strong> 1.0.0</p>
+        <p><strong>Status :</strong> <span class="status">Actif</span></p>
+        
+        <p style="font-size: 0.9em; opacity: 0.8; margin-top: 30px;">
+            Développé pour le Cracken Launcher<br>
+            Hébergé gratuitement sur Vercel
+        </p>
+    </div>
+</body>
+</html>
