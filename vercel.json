@@ -1,7 +1,4 @@
-{
-  "functions": {
-    "callback.js": "@vercel/node"
-  },
+{{
   "rewrites": [
     {
       "source": "/callback",
