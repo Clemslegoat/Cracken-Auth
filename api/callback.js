@@ -1,5 +1,22 @@
-// Cracken Launcher OAuth Server - Fichier unique sans dossiers
+// Serveur de callback OAuth pour Cracken Launcher
+// Déployé gratuitement sur Vercel
+
+// Stockage temporaire des résultats d'authentification (en mémoire)
+// Note: En production, utilisez une base de données ou Redis
+let authResults = new Map();
+
+// Nettoyer les anciens résultats (plus de 5 minutes)
+function cleanupOldResults() {
+  const now = Date.now();
+  for (const [key, value] of authResults.entries()) {
+    if (now - value.timestamp > 5 * 60 * 1000) { // 5 minutes
+      authResults.delete(key);
+    }
+  }
+}
+
 export default function handler(req, res) {
+  // Permettre les requêtes depuis n'importe quelle origine (CORS)
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -10,91 +27,147 @@ export default function handler(req, res) {
   }
 
   if (req.method === 'GET') {
-    const { code, state, error } = req.query;
+    const { code, state, error, action, session_id } = req.query;
+
+    // Nettoyer les anciens résultats
+    cleanupOldResults();
+
+    // Endpoint pour que le launcher récupère le résultat d'authentification
+    if (action === 'poll' && session_id) {
+      const result = authResults.get(session_id);
+      if (result) {
+        authResults.delete(session_id); // Nettoyer après récupération
+        res.status(200).json(result);
+      } else {
+        res.status(202).json({ status: 'waiting' }); // Toujours en attente
+      }
+      return;
+    }
 
     if (error) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.status(400).send(`
+      // Stocker l'erreur si on a un state (session_id)
+      if (state) {
+        authResults.set(state, {
+          success: false,
+          error: error,
+          timestamp: Date.now()
+        });
+      }
+
+      // Erreur d'authentification
+      const errorHtml = `
         <!DOCTYPE html>
-        <html>
+        <html lang="fr">
         <head>
-            <title>Erreur OAuth</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Erreur d'authentification</title>
             <style>
                 body {
-                    font-family: Arial, sans-serif;
-                    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
                     color: white;
                     text-align: center;
-                    padding: 50px;
+                    padding: 50px 20px;
                     margin: 0;
                     min-height: 100vh;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
+                    align-items: center;
                 }
                 .container {
                     background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
                     border-radius: 20px;
                     padding: 40px;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
                     max-width: 500px;
-                    margin: 0 auto;
                 }
                 h1 { font-size: 2.5em; margin-bottom: 20px; }
-                p { font-size: 1.2em; }
+                p { font-size: 1.2em; line-height: 1.6; }
+                .error-icon { font-size: 4em; margin-bottom: 20px; }
             </style>
         </head>
         <body>
             <div class="container">
-                <h1>❌ Erreur d'authentification</h1>
+                <div class="error-icon">❌</div>
+                <h1>Erreur d'authentification</h1>
                 <p>Une erreur s'est produite lors de la connexion Google.</p>
                 <p>Veuillez fermer cette fenêtre et réessayer.</p>
             </div>
         </body>
         </html>
-      `);
+      `;
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.status(400).send(errorHtml);
       return;
     }
 
     if (code) {
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.status(200).send(`
+      // Stocker le code d'autorisation avec le state comme clé de session
+      if (state) {
+        authResults.set(state, {
+          success: true,
+          code: code,
+          state: state,
+          timestamp: Date.now()
+        });
+      }
+
+      // Succès - Afficher la page de confirmation
+      const successHtml = `
         <!DOCTYPE html>
-        <html>
+        <html lang="fr">
         <head>
-            <title>Connexion Réussie</title>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Connexion Google réussie</title>
             <style>
                 body {
-                    font-family: Arial, sans-serif;
-                    background: linear-gradient(135deg, #667eea, #764ba2);
+                    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     color: white;
                     text-align: center;
-                    padding: 50px;
+                    padding: 50px 20px;
                     margin: 0;
                     min-height: 100vh;
                     display: flex;
                     flex-direction: column;
                     justify-content: center;
+                    align-items: center;
                 }
                 .container {
                     background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
                     border-radius: 20px;
                     padding: 40px;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
                     max-width: 500px;
-                    margin: 0 auto;
                 }
                 h1 { font-size: 2.5em; margin-bottom: 20px; }
-                p { font-size: 1.2em; margin-bottom: 20px; }
-                .countdown { font-size: 1em; opacity: 0.8; }
+                p { font-size: 1.2em; line-height: 1.6; margin-bottom: 20px; }
+                .checkmark { font-size: 4em; margin-bottom: 20px; animation: bounce 1s ease-in-out; }
+
+                @keyframes bounce {
+                    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+                    40% { transform: translateY(-10px); }
+                    60% { transform: translateY(-5px); }
+                }
             </style>
         </head>
         <body>
             <div class="container">
-                <h1>✅ Connexion Google réussie !</h1>
+                <div class="checkmark">✅</div>
+                <h1>Connexion Google réussie !</h1>
                 <p>Authentification terminée avec succès.</p>
                 <p>Vous pouvez fermer cette fenêtre et retourner au Cracken Launcher.</p>
+
             </div>
             <script>
+                // Envoyer le code au launcher via localStorage (si même domaine) ou postMessage
                 try {
+                    // Essayer de communiquer avec le launcher
                     if (window.opener) {
                         window.opener.postMessage({
                             type: 'GOOGLE_AUTH_SUCCESS',
@@ -103,84 +176,22 @@ export default function handler(req, res) {
                         }, '*');
                     }
                 } catch (e) {
-                    console.log('Communication impossible:', e);
+                    console.log('Communication avec le launcher impossible:', e);
                 }
 
-                let count = 3;
-                const countdownElement = document.getElementById('countdown');
-                const timer = setInterval(() => {
-                    count--;
-                    countdownElement.textContent = count;
-                    if (count <= 0) {
-                        clearInterval(timer);
-                        window.close();
-                    }
-                }, 1000);
+                // Authentification terminée - pas de fermeture automatique
+                console.log('Authentification Google terminée avec succès');
             </script>
         </body>
         </html>
-      `);
+      `;
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.status(200).send(successHtml);
       return;
     }
 
-    // Page d'accueil
-    res.setHeader('Content-Type', 'text/html; charset=utf-8');
-    res.status(200).send(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-          <title>Cracken OAuth Server</title>
-          <style>
-              body {
-                  font-family: Arial, sans-serif;
-                  background: linear-gradient(135deg, #667eea, #764ba2);
-                  color: white;
-                  text-align: center;
-                  padding: 50px;
-                  margin: 0;
-                  min-height: 100vh;
-                  display: flex;
-                  flex-direction: column;
-                  justify-content: center;
-              }
-              .container {
-                  background: rgba(255, 255, 255, 0.1);
-                  border-radius: 20px;
-                  padding: 40px;
-                  max-width: 600px;
-                  margin: 0 auto;
-              }
-              h1 { font-size: 2.5em; margin-bottom: 20px; }
-              p { font-size: 1.2em; margin-bottom: 20px; }
-              .status { color: #4CAF50; font-weight: bold; }
-              .endpoint { 
-                  background: rgba(255, 255, 255, 0.2);
-                  padding: 10px;
-                  border-radius: 10px;
-                  font-family: monospace;
-                  margin: 10px 0;
-              }
-          </style>
-      </head>
-      <body>
-          <div class="container">
-              <h1>🚀 Cracken Launcher OAuth Server</h1>
-              <p class="status">✅ Serveur en ligne et fonctionnel</p>
-              <p>Ce serveur gère les callbacks Google OAuth pour le Cracken Launcher.</p>
-              
-              <h3>📡 Endpoint disponible :</h3>
-              <div class="endpoint">/callback - Callback OAuth Google</div>
-              
-              <p><strong>Status :</strong> <span class="status">Actif</span></p>
-              
-              <p style="font-size: 0.9em; opacity: 0.8; margin-top: 30px;">
-                  Développé pour le Cracken Launcher<br>
-                  Hébergé gratuitement sur Vercel
-              </p>
-          </div>
-      </body>
-      </html>
-    `);
+    // Aucun code reçu
+    res.status(400).json({ error: 'Aucun code d\'autorisation reçu' });
   } else {
     res.status(405).json({ error: 'Méthode non autorisée' });
   }
