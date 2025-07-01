@@ -92,7 +92,6 @@ export default function handler(req, res) {
                 <h1>✅ Connexion Google réussie !</h1>
                 <p>Authentification terminée avec succès.</p>
                 <p>Vous pouvez fermer cette fenêtre et retourner au Cracken Launcher.</p>
-                <div class="countdown">Cette fenêtre se fermera dans <span id="countdown">3</span> secondes...</div> <div style="margin-top: 15px; font-size: 0.9em; opacity: 0.7;">     Si elle ne se ferme pas : <strong>Ctrl+W</strong> ou <strong>Alt+F4</strong> </div>
             </div>
             <script>
                 try {
