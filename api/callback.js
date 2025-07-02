@@ -126,7 +126,7 @@ export default function handler(req, res) {
             <style>
                 body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg, #0B1317 0%, #44C283 100%);
                     color: white;
                     text-align: center;
                     padding: 50px 20px;
@@ -159,7 +159,7 @@ export default function handler(req, res) {
         <body>
             <div class="container">
                 <div class="checkmark">✅</div>
-                <h1>Connexion Google réussie !</h1>
+                <h1>Connexion Google<br>réussie !</h1>
                 <p>Authentification terminée avec succès.</p>
                 <p>Vous pouvez fermer cette fenêtre et retourner au Cracken Launcher.</p>
 
