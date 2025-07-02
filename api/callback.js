@@ -65,7 +65,7 @@ export default function handler(req, res) {
             <style>
                 body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+                    background: linear-gradient(135deg, #0B1317 0%, #44C283 100%);
                     color: white;
                     text-align: center;
                     padding: 50px 20px;
@@ -126,7 +126,7 @@ export default function handler(req, res) {
             <style>
                 body {
                     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-                    background: linear-gradient(135deg, #0B1317 50%, #44C283 50%);
+                    background: linear-gradient(135deg, #0B1317 0%, #44C283 100%);
                     color: white;
                     text-align: center;
                     padding: 50px 20px;
