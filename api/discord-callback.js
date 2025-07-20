@@ -1,135 +1,31 @@
-// api/discord-callback.js
-// Gère le callback Discord OAuth pour Cracken Launcher
-
-// Importer le stockage partagé (CommonJS)
-const { setAuthResult } = require('./shared-storage.js');
-
-module.exports = function handler(req, res) {
-  // Configurer CORS
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
+export default function handler(req, res) {
+  const { code, state } = req.query;
+  
+  if (!code) {
+    return res.status(400).json({ error: 'Code manquant' });
   }
 
-  try {
-    const { code, state, error, error_description } = req.query;
-
-    console.log('Discord callback reçu:', { code: !!code, state, error });
-
-    if (error) {
-      // Erreur d'autorisation Discord
-      console.error('Erreur Discord OAuth:', error, error_description);
-      
-      // Stocker l'erreur pour le polling
-      if (state) {
-        setAuthResult(state, {
-          success: false,
-          error: error_description || error,
-          provider: 'discord'
-        });
-      }
-
-      // Rediriger vers une page d'erreur ou afficher un message
-      res.status(400).json({
-        success: false,
-        error: error_description || error,
-        message: 'Erreur lors de l\'autorisation Discord'
-      });
-      return;
-    }
-
-    if (!code || !state) {
-      console.error('Code ou state manquant:', { code: !!code, state: !!state });
-      res.status(400).json({
-        success: false,
-        error: 'Paramètres manquants',
-        message: 'Code d\'autorisation ou state manquant'
-      });
-      return;
-    }
-
-    // Stocker le résultat pour le polling
-    setAuthResult(state, {
-      success: true,
-      code: code,
-      provider: 'discord'
-    });
-
-    // Afficher une page de succès
-    const successHtml = `
+  // Page de succès Discord
+  res.status(200).send(`
     <!DOCTYPE html>
-    <html>
+    <html lang="fr">
     <head>
-        <title>Connexion Discord Réussie</title>
-        <meta charset="utf-8">
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Discord Auth - Succès</title>
         <style>
-            body {
-                font-family: Arial, sans-serif;
-                background: linear-gradient(135deg, #5865F2, #4752C4);
-                color: white;
-                text-align: center;
-                padding: 50px;
-                margin: 0;
-            }
-            .container {
-                background: rgba(255, 255, 255, 0.1);
-                border-radius: 15px;
-                padding: 40px;
-                max-width: 500px;
-                margin: 0 auto;
-                backdrop-filter: blur(10px);
-            }
-            .icon {
-                font-size: 64px;
-                margin-bottom: 20px;
-            }
-            h1 {
-                margin: 0 0 20px 0;
-                font-size: 28px;
-            }
-            p {
-                font-size: 16px;
-                line-height: 1.5;
-                margin: 0 0 30px 0;
-            }
-            .launcher-name {
-                color: #44C283;
-                font-weight: bold;
-            }
+            body { font-family: Arial, sans-serif; text-align: center; padding: 50px; background: linear-gradient(135deg, #7289da, #5865f2); color: white; }
+            .container { max-width: 500px; margin: 0 auto; background: rgba(0,0,0,0.3); padding: 30px; border-radius: 10px; }
         </style>
     </head>
     <body>
         <div class="container">
-            <div class="icon">🎮</div>
-            <h1>Connexion Discord Réussie !</h1>
-            <p>Votre compte Discord a été connecté avec succès au <span class="launcher-name">Cracken Launcher</span>.</p>
-            <p>Vous pouvez maintenant fermer cette fenêtre et retourner au launcher.</p>
+            <h1>🎉 Authentification Discord réussie !</h1>
+            <p>Code: ${code}</p>
+            <p>State: ${state}</p>
+            <p>Vous pouvez fermer cette fenêtre.</p>
         </div>
-        <script>
-            // Optionnel: fermer automatiquement après 3 secondes
-            setTimeout(() => {
-                window.close();
-            }, 3000);
-        </script>
     </body>
     </html>
-    `;
-
-    res.setHeader('Content-Type', 'text/html');
-    res.status(200).send(successHtml);
-
-  } catch (error) {
-    console.error('Erreur dans discord-callback:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Erreur serveur',
-      message: 'Une erreur interne s\'est produite'
-    });
-  }
+  `);
 }
-
-// Le stockage est maintenant géré par shared-storage.js
