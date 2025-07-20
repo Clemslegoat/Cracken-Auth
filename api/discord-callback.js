@@ -1,11 +1,10 @@
 // api/discord-callback.js
 // Gère le callback Discord OAuth pour Cracken Launcher
 
-// Importer le stockage partagé
-// NOUVEAU (CommonJS)
+// Importer le stockage partagé (CommonJS)
 const { setAuthResult } = require('./shared-storage.js');
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   // Configurer CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
