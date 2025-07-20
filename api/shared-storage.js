@@ -77,13 +77,12 @@ function getStats() {
   };
 }
 
-// Exporter les fonctions et la Map
-// NOUVEAU (CommonJS)
-module.exports = { 
-  authResults, 
-  setAuthResult, 
-  getAuthResult, 
-  deleteAuthResult, 
+// Exporter les fonctions et la Map (CommonJS)
+module.exports = {
+  authResults,
+  setAuthResult,
+  getAuthResult,
+  deleteAuthResult,
   cleanupExpiredSessions,
-  getStats 
+  getStats
 };
