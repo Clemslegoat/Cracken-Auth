@@ -78,7 +78,8 @@ function getStats() {
 }
 
 // Exporter les fonctions et la Map
-export { 
+// NOUVEAU (CommonJS)
+module.exports = { 
   authResults, 
   setAuthResult, 
   getAuthResult, 
