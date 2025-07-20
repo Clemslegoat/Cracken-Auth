@@ -1,15 +1,29 @@
 {
-  "name": "cracken-launcher-oauth-server",
-  "version": "1.0.0",
-  "description": "Serveur OAuth callback pour Cracken Launcher",
-  "main": "api/callback.js",
-  "type": "module",
+  "name": "cracken-auth-server",
+  "version": "2.0.0",
+  "description": "Serveur d'authentification OAuth pour Cracken Launcher (Google + Discord)",
+  "main": "api/index.js",
   "scripts": {
     "dev": "vercel dev",
     "build": "echo 'No build step required'",
-    "start": "echo 'Deployed on Vercel'"
+    "start": "echo 'Use vercel dev for local development'"
   },
-  "keywords": ["oauth", "google", "callback", "cracken", "launcher"],
-  "author": "Cracken Launcher",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@vercel/node": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "oauth",
+    "google",
+    "discord",
+    "authentication",
+    "cracken-launcher"
+  ],
+  "author": "Cracken Launcher Team",
   "license": "MIT"
 }
