@@ -1,10 +1,10 @@
 // api/check-discord-auth/[session_id].js
 // Endpoint de polling pour vérifier le statut de l'authentification Discord
 
-// NOUVEAU (CommonJS)
+// Importer le stockage partagé (CommonJS)
 const { getAuthResult, deleteAuthResult } = require('../shared-storage.js');
 
-export default function handler(req, res) {
+module.exports = function handler(req, res) {
   // Configurer CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
