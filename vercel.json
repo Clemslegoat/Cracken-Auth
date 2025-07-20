@@ -1,8 +1,39 @@
 {
-  "rewrites": [
+  "version": 2,
+  "name": "cracken-auth",
+  "builds": [
     {
-      "source": "/callback",
-      "destination": "/api/callback"
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
     }
-  ]
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/callback",
+      "dest": "/api/callback.js"
+    },
+    {
+      "src": "/discord-callback",
+      "dest": "/api/discord-callback.js"
+    },
+    {
+      "src": "/check-discord-auth/(.*)",
+      "dest": "/api/check-discord-auth/$1.js"
+    }
+  ],
+  "env": {
+    "GOOGLE_CLIENT_ID": "@google_client_id",
+    "GOOGLE_CLIENT_SECRET": "@google_client_secret",
+    "DISCORD_CLIENT_ID": "@discord_client_id",
+    "DISCORD_CLIENT_SECRET": "@discord_client_secret"
+  },
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs18.x"
+    }
+  }
 }
