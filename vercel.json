@@ -19,10 +19,6 @@
     {
       "src": "/discord-callback",
       "dest": "/api/discord-callback.js"
-    },
-    {
-      "src": "/check-discord-auth/(.*)",
-      "dest": "/api/check-discord-auth/$1.js"
     }
   ],
   "env": {
