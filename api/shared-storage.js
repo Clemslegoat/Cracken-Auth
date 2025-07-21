@@ -1,88 +1,30 @@
-// api/shared-storage.js
-// Stockage partagé pour les résultats d'authentification Discord et Google
-// Utilisé par discord-callback.js et check-discord-auth/[session_id].js
-
-// Map partagée pour stocker les résultats d'authentification
-const authResults = new Map();
-
-// Fonction de nettoyage des sessions expirées
-function cleanupExpiredSessions() {
-  const now = Date.now();
-  let cleaned = 0;
-  
-  for (const [key, value] of authResults.entries()) {
-    if (now - value.timestamp > 10 * 60 * 1000) { // 10 minutes
-      authResults.delete(key);
-      cleaned++;
-    }
-  }
-  
-  if (cleaned > 0) {
-    console.log(`🧹 Nettoyage: ${cleaned} sessions expirées supprimées`);
-  }
-  
-  return cleaned;
+// shared-storage.js
+const admin = require('firebase-admin');
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      // Mets ici tes credentials Firebase Admin (service account)
+      // Tu peux aussi utiliser admin.initializeApp() si tu utilises les variables d'env Vercel
+    }),
+    databaseURL: "https://<TON_PROJECT_ID>.firebaseio.com"
+  });
 }
+const db = admin.database();
 
-// Nettoyer automatiquement toutes les minutes
-setInterval(cleanupExpiredSessions, 60 * 1000);
-
-// Fonction utilitaire pour ajouter un résultat
-function setAuthResult(sessionId, result) {
-  authResults.set(sessionId, {
+async function setAuthResult(sessionId, result) {
+  await db.ref('oauth_sessions/' + sessionId).set({
     ...result,
     timestamp: Date.now()
   });
-  console.log(`📝 Résultat stocké pour session: ${sessionId}`, { success: result.success, provider: result.provider });
 }
 
-// Fonction utilitaire pour récupérer un résultat
-function getAuthResult(sessionId) {
-  const result = authResults.get(sessionId);
-  
-  if (!result) {
-    return null;
-  }
-  
-  // Vérifier si le résultat n'est pas expiré
-  const now = Date.now();
-  if (now - result.timestamp > 10 * 60 * 1000) {
-    authResults.delete(sessionId);
-    console.log(`⏰ Session expirée supprimée: ${sessionId}`);
-    return null;
-  }
-  
-  return result;
+async function getAuthResult(sessionId) {
+  const snap = await db.ref('oauth_sessions/' + sessionId).once('value');
+  return snap.exists() ? snap.val() : null;
 }
 
-// Fonction utilitaire pour supprimer un résultat
-function deleteAuthResult(sessionId) {
-  const deleted = authResults.delete(sessionId);
-  if (deleted) {
-    console.log(`🗑️ Session supprimée: ${sessionId}`);
-  }
-  return deleted;
+async function deleteAuthResult(sessionId) {
+  await db.ref('oauth_sessions/' + sessionId).remove();
 }
 
-// Fonction pour obtenir des statistiques
-function getStats() {
-  return {
-    totalSessions: authResults.size,
-    sessions: Array.from(authResults.entries()).map(([id, data]) => ({
-      id: id.substring(0, 8) + '...',
-      provider: data.provider,
-      success: data.success,
-      age: Math.round((Date.now() - data.timestamp) / 1000) + 's'
-    }))
-  };
-}
-
-// Exporter les fonctions et la Map (CommonJS)
-module.exports = {
-  authResults,
-  setAuthResult,
-  getAuthResult,
-  deleteAuthResult,
-  cleanupExpiredSessions,
-  getStats
-};
+module.exports = { setAuthResult, getAuthResult, deleteAuthResult };
