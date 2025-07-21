@@ -5,10 +5,5 @@
     { "src": "/", "dest": "/api/index.js" },
     { "src": "/callback", "dest": "/api/callback.js" },
     { "src": "/discord-callback", "dest": "/api/discord-callback.js" }
-  ],
-  "functions": {
-    "api/*.js": {
-      "runtime": "nodejs@18.x"
-    }
-  }
+  ]
 }
