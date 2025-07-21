@@ -8,9 +8,10 @@
     "build": "echo 'No build step required'",
     "start": "echo 'Use vercel dev for local development'"
   },
-  "dependencies": {
-    "node-fetch": "^3.3.2"
-  },
+"dependencies": {
+  "node-fetch": "^3.3.2",
+  "firebase-admin": "^11.11.1"
+},
   "devDependencies": {
     "@vercel/node": "^3.0.0"
   },
