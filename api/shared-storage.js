@@ -1,27 +1,43 @@
-// Importez le SDK Admin
 const admin = require('firebase-admin');
 
-// Vérifiez si une instance de l'app est déjà initialisée pour éviter les erreurs
 if (!admin.apps.length) {
-  // Récupérez les credentials depuis la variable d'environnement
-  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const {
+    FIREBASE_PRIVATE_KEY,
+    FIREBASE_CLIENT_EMAIL,
+    FIREBASE_PROJECT_ID,
+    FIREBASE_PRIVATE_KEY_ID,
+    FIREBASE_CLIENT_ID,
+    FIREBASE_AUTH_URI,
+    FIREBASE_TOKEN_URI,
+    FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+    FIREBASE_CLIENT_X509_CERT_URL,
+    FIREBASE_DATABASE_URL,
+  } = process.env;
 
-  if (!serviceAccountString) {
-    throw new Error('La variable d\'environnement FIREBASE_SERVICE_ACCOUNT_JSON n\'est pas définie.');
+  if (
+    !FIREBASE_PRIVATE_KEY || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PROJECT_ID ||
+    !FIREBASE_PRIVATE_KEY_ID || !FIREBASE_CLIENT_ID || !FIREBASE_AUTH_URI ||
+    !FIREBASE_TOKEN_URI || !FIREBASE_AUTH_PROVIDER_X509_CERT_URL ||
+    !FIREBASE_CLIENT_X509_CERT_URL || !FIREBASE_DATABASE_URL
+  ) {
+    throw new Error('Une ou plusieurs variables d’environnement Firebase sont manquantes.');
   }
 
-  // ÉTAPE CRUCIALE : Parsez la chaîne de caractères en objet JSON
-  const serviceAccount = JSON.parse(serviceAccountString);
-
-  // Correction pour les sauts de ligne de la clé privée, une source d'erreur fréquente
-  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
-
-  // Initialisez le SDK Admin avec l'objet JSON parsé
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
-    databaseURL: "https://cracken-auth-default-rtdb.europe-west1.firebasedatabase.app/" // Assurez-vous que l'URL est correcte
+    credential: admin.credential.cert({
+      type: "service_account",
+      project_id: FIREBASE_PROJECT_ID,
+      private_key_id: FIREBASE_PRIVATE_KEY_ID,
+      private_key: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      client_email: FIREBASE_CLIENT_EMAIL,
+      client_id: FIREBASE_CLIENT_ID,
+      auth_uri: FIREBASE_AUTH_URI,
+      token_uri: FIREBASE_TOKEN_URI,
+      auth_provider_x509_cert_url: FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+      client_x509_cert_url: FIREBASE_CLIENT_X509_CERT_URL,
+    }),
+    databaseURL: FIREBASE_DATABASE_URL,
   });
 }
 
-// Exportez l'instance admin pour l'utiliser dans vos autres fichiers
 module.exports = admin;
