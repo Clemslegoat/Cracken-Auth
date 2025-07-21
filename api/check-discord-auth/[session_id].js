@@ -4,7 +4,7 @@
 // Importer le stockage partagé (CommonJS)
 const { getAuthResult, deleteAuthResult } = require('../shared-storage.js');
 
-module.exports = function handler(req, res) {
+module.exports = async function handler(req, res) {
   // Configurer CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -39,7 +39,7 @@ module.exports = function handler(req, res) {
     console.log(`Vérification du statut Discord pour session: ${session_id}`);
 
     // Vérifier si nous avons un résultat pour cette session
-    const result = getAuthResult(session_id);
+    const result = await getAuthResult(session_id);
 
     if (!result) {
       // Pas encore de résultat - toujours en attente
@@ -58,7 +58,7 @@ module.exports = function handler(req, res) {
     if (result.success) {
       // Succès - retourner le code d'autorisation
       // Supprimer le résultat après l'avoir retourné (usage unique)
-      deleteAuthResult(session_id);
+      await deleteAuthResult(session_id);
 
       res.status(200).json({
         success: true,
@@ -69,7 +69,7 @@ module.exports = function handler(req, res) {
     } else {
       // Erreur - retourner l'erreur
       // Supprimer le résultat après l'avoir retourné
-      deleteAuthResult(session_id);
+      await deleteAuthResult(session_id);
 
       res.status(400).json({
         success: false,
