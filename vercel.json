@@ -1,27 +1,13 @@
 {
   "version": 2,
   "name": "cracken-auth",
-
   "routes": [
-    {
-      "src": "/",
-      "dest": "/api/index.js"
-    },
-    {
-      "src": "/callback",
-      "dest": "/api/callback.js"
-    },
-    {
-      "src": "/discord-callback",
-      "dest": "/api/discord-callback.js"
-    }
+    { "src": "/", "dest": "/api/index.js" },
+    { "src": "/callback", "dest": "/api/callback.js" },
+    { "src": "/discord-callback", "dest": "/api/discord-callback.js" }
   ],
-  "env": {
-    "GOOGLE_CLIENT_ID": "@GOOGLE_CLIENT_ID",
-    "GOOGLE_CLIENT_SECRET": "@GOOGLE_CLIENT_SECRET"
-  },
   "functions": {
-    "api/**/*.js": {
+    "api/*.js": {
       "runtime": "nodejs18.x"
     }
   }
