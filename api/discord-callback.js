@@ -1,9 +1,29 @@
-export default function handler(req, res) {
-  const { code, state } = req.query;
-  
-  if (!code) {
-    return res.status(400).json({ error: 'Code manquant' });
+const { setAuthResult } = require('./shared-storage.js');
+
+module.exports = function handler(req, res) {
+  const { code, state, error, error_description } = req.query;
+
+  if (error) {
+    if (state) {
+      setAuthResult(state, {
+        success: false,
+        error: error_description || error,
+        provider: 'discord'
+      });
+    }
+    return res.status(400).json({ error: error_description || error });
   }
+
+  if (!code || !state) {
+    return res.status(400).json({ error: 'Code ou state manquant' });
+  }
+
+  // Stocker le résultat pour le polling
+  setAuthResult(state, {
+    success: true,
+    code: code,
+    provider: 'discord'
+  });
 
   // Page de succès Discord
   res.status(200).send(`
@@ -21,8 +41,6 @@ export default function handler(req, res) {
     <body>
         <div class="container">
             <h1>🎉 Authentification Discord réussie !</h1>
-            <p>Code: ${code}</p>
-            <p>State: ${state}</p>
             <p>Vous pouvez fermer cette fenêtre.</p>
         </div>
     </body>
