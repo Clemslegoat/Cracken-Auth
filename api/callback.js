@@ -1,3 +1,5 @@
+const fetch = require("node-fetch"); // ✅ Tout en haut
+
 module.exports = async function handler(req, res) {
   const { code, state } = req.query;
 
@@ -18,10 +20,10 @@ module.exports = async function handler(req, res) {
       })
     });
 
-    // Ajoute ici ton traitement avec `tokenResponse`
+    // Traitement de la réponse
     res.status(200).json({ success: true });
   } catch (error) {
     console.error("Erreur lors de l'échange du code Google:", error);
-    res.status(500).json({ success: false, message: "Erreur interne du serveur." });
+    res.status(500).json({ success: false });
   }
 };
