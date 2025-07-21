@@ -1,11 +1,11 @@
 const { setAuthResult } = require('./shared-storage.js');
 
-module.exports = function handler(req, res) {
+module.exports = async function handler(req, res) {
   const { code, state, error, error_description } = req.query;
 
   if (error) {
     if (state) {
-      setAuthResult(state, {
+      await setAuthResult(state, {
         success: false,
         error: error_description || error,
         provider: 'discord'
@@ -19,7 +19,7 @@ module.exports = function handler(req, res) {
   }
 
   // Stocker le résultat pour le polling
-  setAuthResult(state, {
+  await setAuthResult(state, {
     success: true,
     code: code,
     provider: 'discord'
@@ -41,6 +41,8 @@ module.exports = function handler(req, res) {
     <body>
         <div class="container">
             <h1>🎉 Authentification Discord réussie !</h1>
+            <p>Code: ${code}</p>
+            <p>State: ${state}</p>
             <p>Vous pouvez fermer cette fenêtre.</p>
         </div>
     </body>
