@@ -1,30 +1,27 @@
-// shared-storage.js
+// Importez le SDK Admin
 const admin = require('firebase-admin');
+
+// Vérifiez si une instance de l'app est déjà initialisée pour éviter les erreurs
 if (!admin.apps.length) {
+  // Récupérez les credentials depuis la variable d'environnement
+  const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+
+  if (!serviceAccountString) {
+    throw new Error('La variable d\'environnement FIREBASE_SERVICE_ACCOUNT_JSON n\'est pas définie.');
+  }
+
+  // ÉTAPE CRUCIALE : Parsez la chaîne de caractères en objet JSON
+  const serviceAccount = JSON.parse(serviceAccountString);
+
+  // Correction pour les sauts de ligne de la clé privée, une source d'erreur fréquente
+  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+
+  // Initialisez le SDK Admin avec l'objet JSON parsé
   admin.initializeApp({
-    credential: admin.credential.cert({
-      // Mets ici tes credentials Firebase Admin (service account)
-      // Tu peux aussi utiliser admin.initializeApp() si tu utilises les variables d'env Vercel
-    }),
-    databaseURL: "https://<TON_PROJECT_ID>.firebaseio.com"
-  });
-}
-const db = admin.database();
-
-async function setAuthResult(sessionId, result) {
-  await db.ref('oauth_sessions/' + sessionId).set({
-    ...result,
-    timestamp: Date.now()
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: "https://cracken-auth-default-rtdb.europe-west1.firebasedatabase.app/" // Assurez-vous que l'URL est correcte
   });
 }
 
-async function getAuthResult(sessionId) {
-  const snap = await db.ref('oauth_sessions/' + sessionId).once('value');
-  return snap.exists() ? snap.val() : null;
-}
-
-async function deleteAuthResult(sessionId) {
-  await db.ref('oauth_sessions/' + sessionId).remove();
-}
-
-module.exports = { setAuthResult, getAuthResult, deleteAuthResult };
+// Exportez l'instance admin pour l'utiliser dans vos autres fichiers
+module.exports = admin;
