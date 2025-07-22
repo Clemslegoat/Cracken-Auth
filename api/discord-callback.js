@@ -7,7 +7,8 @@ const { setAuthResult } = require('./shared-storage.js');
 module.exports = async function handler(req, res) {
   const { code, state, error, error_description } = req.query;
 
-  console.log('Callback Discord reçu:', { code: !!code, state, error });
+  console.log('🔗 CALLBACK DISCORD reçu:', { code: !!code, state, error });
+  console.log('🆔 CALLBACK DISCORD - Session ID reçu:', state);
 
   if (error) {
     console.error('Erreur Discord OAuth:', error, error_description);
