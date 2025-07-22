@@ -52,12 +52,8 @@ module.exports = async function handler(req, res) {
     };
 
     const isSuccess = decodedData.success;
-    const title = isSuccess ? 'Connexion réussie' : 'Erreur de connexion';
-    const icon = isSuccess ? '✓' : '✗';
+    const title = isSuccess ? '✓ Connexion réussie !' : '✗ Erreur de connexion';
     const bgColor = isSuccess ? '#44C283' : '#e74c3c';
-    const message = isSuccess 
-      ? `Bienvenue ${decodedData.data?.name || 'utilisateur'} !`
-      : `Erreur: ${decodedData.error}`;
 
     const successHtml = `
 <!DOCTYPE html>
@@ -79,39 +75,28 @@ module.exports = async function handler(req, res) {
         }
         .container {
             background: rgba(255,255,255,0.15);
-            padding: 40px;
+            padding: 30px;
             border-radius: 20px;
             text-align: center;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-            max-width: 400px;
+            max-width: 350px;
             margin: 20px;
-        }
-        .icon {
-            width: 80px;
-            height: 80px;
-            background: ${isSuccess ? '#27ae60' : '#c0392b'};
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            font-size: 40px;
         }
         h1 { 
             color: white; 
-            margin: 20px 0;
-            font-size: 28px;
+            margin: 0;
+            font-size: 24px;
             font-weight: 600;
         }
-        .subtitle {
+        .error-message {
             color: rgba(255,255,255,0.9);
-            margin: 15px 0;
+            margin: 15px 0 0 0;
             font-size: 16px;
         }
         .info {
             color: rgba(255,255,255,0.8);
-            margin: 20px 0;
+            margin: 20px 0 0 0;
             font-size: 14px;
             line-height: 1.5;
         }
@@ -122,9 +107,8 @@ module.exports = async function handler(req, res) {
 </head>
 <body>
     <div class="container">
-        <div class="icon">${icon}</div>
         <h1>${title}</h1>
-        <div class="subtitle">${message}</div>
+        ${isSuccess ? '' : `<div class="error-message">${decodedData.error}</div>`}
         <div class="info">Vous pouvez fermer cette fenêtre et retourner au Cracken Launcher.</div>
         
         <!-- Données cachées pour le polling -->
