@@ -120,13 +120,20 @@ module.exports = async function handler(req, res) {
     console.log('Données utilisateur Google reçues:', userData.email);
 
     // Stocker le résultat pour le polling
+    console.log(`📝 CALLBACK: Stockage des données pour session ${state}`);
+    console.log(`📝 CALLBACK: Données utilisateur:`, userData);
+
     await setAuthResult(state, {
       success: true,
-      email: userData.email,
-      name: userData.name || userData.email.split('@')[0],
-      access_token: tokenInfo.access_token,
+      data: {
+        email: userData.email,
+        name: userData.name || userData.email.split('@')[0],
+        access_token: tokenInfo.access_token
+      },
       provider: 'google'
     });
+
+    console.log(`✅ CALLBACK: Données stockées avec succès pour session ${state}`);
 
     // Page de succès comme l'ancienne version
     const successHtml = `
