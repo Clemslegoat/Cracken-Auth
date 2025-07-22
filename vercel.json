@@ -22,5 +22,6 @@
       "src": "/api/check-discord-auth/(.*)",
       "dest": "/api/check-discord-auth/[session_id].js"
     }
-  ]
+  ],
+  "outputDirectory": "api"
 }
