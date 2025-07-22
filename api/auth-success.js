@@ -2,7 +2,38 @@
 // Page de succès avec données intégrées pour le polling
 
 module.exports = async function handler(req, res) {
-  const { data } = req.query;
+  const { data, session_check } = req.query;
+
+  // Si c'est une vérification de session, retourner les données stockées
+  if (session_check) {
+    console.log(`🔍 AUTH SUCCESS: Vérification session ${session_check}`);
+
+    if (global.currentAuthResult &&
+        global.currentAuthResult.session_id === session_check &&
+        global.currentAuthResult.timestamp > Date.now() - 10 * 60 * 1000) {
+
+      console.log(`✅ AUTH SUCCESS: Données trouvées pour vérification ${session_check}`);
+
+      const result = global.currentAuthResult;
+      const encodedData = Buffer.from(JSON.stringify(result)).toString('base64');
+
+      // Retourner une page HTML simple avec les données
+      const html = `
+<!DOCTYPE html>
+<html>
+<head><title>Auth Check</title></head>
+<body>
+    <div class="hidden-data" id="auth-data">${encodedData}</div>
+    <div class="hidden-data" id="session-id">${session_check}</div>
+</body>
+</html>`;
+
+      return res.status(200).send(html);
+    }
+
+    console.log(`❌ AUTH SUCCESS: Aucune donnée pour vérification ${session_check}`);
+    return res.status(404).send('Session non trouvée');
+  }
 
   if (!data) {
     return res.status(400).send('Données manquantes');
