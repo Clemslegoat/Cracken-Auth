@@ -1,49 +1,88 @@
-const admin = require('firebase-admin');
+// api/shared-storage.js
+// Stockage partagé pour les résultats d'authentification Discord et Google
+// Utilisé par discord-callback.js, google-callback.js et les endpoints de polling
 
-if (!admin.apps.length) {
-  const {
-    FIREBASE_PRIVATE_KEY,
-    FIREBASE_CLIENT_EMAIL,
-    FIREBASE_PROJECT_ID,
-    FIREBASE_PRIVATE_KEY_ID,
-    FIREBASE_CLIENT_ID,
-    FIREBASE_AUTH_URI,
-    FIREBASE_TOKEN_URI,
-    FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
-    FIREBASE_CLIENT_X509_CERT_URL,
-    FIREBASE_DATABASE_URL,
-  } = process.env;
+// Map partagée pour stocker les résultats d'authentification
+const authResults = new Map();
 
-  if (
-    !FIREBASE_PRIVATE_KEY || !FIREBASE_CLIENT_EMAIL || !FIREBASE_PROJECT_ID ||
-    !FIREBASE_PRIVATE_KEY_ID || !FIREBASE_CLIENT_ID || !FIREBASE_AUTH_URI ||
-    !FIREBASE_TOKEN_URI || !FIREBASE_AUTH_PROVIDER_X509_CERT_URL ||
-    !FIREBASE_CLIENT_X509_CERT_URL || !FIREBASE_DATABASE_URL
-  ) {
-    throw new Error('Une ou plusieurs variables d’environnement Firebase sont manquantes.');
+// Fonction de nettoyage des sessions expirées
+function cleanupExpiredSessions() {
+  const now = Date.now();
+  let cleaned = 0;
+  
+  for (const [key, value] of authResults.entries()) {
+    if (now - value.timestamp > 10 * 60 * 1000) { // 10 minutes
+      authResults.delete(key);
+      cleaned++;
+    }
   }
-
-  admin.initializeApp({
-    credential: admin.credential.cert({
-      type: "service_account",
-      project_id: FIREBASE_PROJECT_ID,
-      private_key_id: FIREBASE_PRIVATE_KEY_ID,
-      private_key: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-      client_email: FIREBASE_CLIENT_EMAIL,
-      client_id: FIREBASE_CLIENT_ID,
-      auth_uri: FIREBASE_AUTH_URI,
-      token_uri: FIREBASE_TOKEN_URI,
-      auth_provider_x509_cert_url: FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
-      client_x509_cert_url: FIREBASE_CLIENT_X509_CERT_URL,
-    }),
-    databaseURL: FIREBASE_DATABASE_URL,
-  });
+  
+  if (cleaned > 0) {
+    console.log(`🧹 Nettoyage: ${cleaned} sessions expirées supprimées`);
+  }
+  
+  return cleaned;
 }
 
-module.exports = admin;
+// Nettoyer automatiquement toutes les minutes
+setInterval(cleanupExpiredSessions, 60 * 1000);
+
+// Fonction utilitaire pour ajouter un résultat
+function setAuthResult(sessionId, result) {
+  authResults.set(sessionId, {
+    ...result,
+    timestamp: Date.now()
+  });
+  console.log(`📝 Résultat stocké pour session: ${sessionId}`, { success: result.success, provider: result.provider });
+}
+
+// Fonction utilitaire pour récupérer un résultat
+function getAuthResult(sessionId) {
+  const result = authResults.get(sessionId);
+  
+  if (!result) {
+    return null;
+  }
+  
+  // Vérifier si le résultat n'est pas expiré
+  const now = Date.now();
+  if (now - result.timestamp > 10 * 60 * 1000) {
+    authResults.delete(sessionId);
+    console.log(`⏰ Session expirée supprimée: ${sessionId}`);
+    return null;
+  }
+  
+  return result;
+}
+
+// Fonction utilitaire pour supprimer un résultat
+function deleteAuthResult(sessionId) {
+  const deleted = authResults.delete(sessionId);
+  if (deleted) {
+    console.log(`🗑️ Session supprimée: ${sessionId}`);
+  }
+  return deleted;
+}
+
+// Fonction pour obtenir des statistiques
+function getStats() {
+  return {
+    totalSessions: authResults.size,
+    sessions: Array.from(authResults.entries()).map(([id, data]) => ({
+      id: id.substring(0, 8) + '...',
+      provider: data.provider,
+      success: data.success,
+      age: Math.round((Date.now() - data.timestamp) / 1000) + 's'
+    }))
+  };
+}
+
+// Exporter les fonctions (CommonJS)
 module.exports = {
+  authResults,
   setAuthResult,
   getAuthResult,
-  deleteAuthResult
-}
-
+  deleteAuthResult,
+  cleanupExpiredSessions,
+  getStats
+};
