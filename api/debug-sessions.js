@@ -1,7 +1,7 @@
 // api/debug-sessions.js
 // Endpoint de debug pour voir toutes les sessions stockées
 
-const { getStats } = require('./shared-storage.js');
+const { getStats } = require('./file-storage.js');
 
 module.exports = async function handler(req, res) {
   // Permettre CORS
