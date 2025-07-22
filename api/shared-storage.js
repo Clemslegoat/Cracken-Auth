@@ -28,7 +28,7 @@ function cleanupExpiredSessions() {
 setInterval(cleanupExpiredSessions, 60 * 1000);
 
 // Fonction utilitaire pour ajouter un résultat
-function setAuthResult(sessionId, result) {
+async function setAuthResult(sessionId, result) {
   console.log(`🔄 STORAGE: Tentative de stockage pour session: ${sessionId}`);
   console.log(`🔄 STORAGE: Données à stocker:`, result);
 
@@ -42,10 +42,12 @@ function setAuthResult(sessionId, result) {
   console.log(`📝 STORAGE: Résultat stocké pour session: ${sessionId}`, { success: result.success, provider: result.provider });
   console.log(`✅ STORAGE: Vérification stockage:`, stored ? 'TROUVÉ' : 'ÉCHEC');
   console.log(`📊 STORAGE: Total sessions stockées: ${authResults.size}`);
+
+  return true; // Retourner une promesse résolue
 }
 
 // Fonction utilitaire pour récupérer un résultat
-function getAuthResult(sessionId) {
+async function getAuthResult(sessionId) {
   console.log(`🔍 STORAGE: Recherche session: ${sessionId}`);
   console.log(`📊 STORAGE: Total sessions disponibles: ${authResults.size}`);
   console.log(`🗂️ STORAGE: Sessions stockées:`, Array.from(authResults.keys()));
