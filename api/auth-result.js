@@ -1,5 +1,5 @@
 // api/auth-result.js
-// Endpoint pour récupérer les résultats d'authentification depuis la page de succès
+// Endpoint pour récupérer les résultats d'authentification
 
 module.exports = async function handler(req, res) {
   // Permettre CORS
@@ -27,23 +27,31 @@ module.exports = async function handler(req, res) {
   console.log(`🔍 Recherche résultat auth pour session: ${session_id}`);
 
   try {
-    // Utiliser le stockage simple en mémoire
-    const { getAuthResult, deleteAuthResult } = require('./simple-storage.js');
-
-    console.log(`🔍 Recherche dans le stockage simple pour session: ${session_id}`);
-    const authResult = await getAuthResult(session_id);
-
-    if (authResult && authResult.success) {
-      console.log(`✅ Données trouvées dans stockage simple pour session ${session_id}`);
-
-      // Marquer pour suppression après récupération
-      await deleteAuthResult(session_id);
-
-      return res.status(200).json({
-        status: 'success',
-        data: authResult.data || authResult,
-        provider: authResult.provider
-      });
+    // Vérifier si on a un résultat dans la variable globale
+    if (global.currentAuthResult && 
+        global.currentAuthResult.session_id === session_id &&
+        global.currentAuthResult.timestamp > Date.now() - 10 * 60 * 1000) {
+      
+      console.log(`✅ Données trouvées dans variable globale pour session ${session_id}`);
+      
+      const result = global.currentAuthResult;
+      
+      // Nettoyer après récupération
+      delete global.currentAuthResult;
+      
+      if (result.success) {
+        return res.status(200).json({
+          status: 'success',
+          data: result.data,
+          provider: result.provider
+        });
+      } else {
+        return res.status(200).json({
+          status: 'error',
+          error: result.error,
+          provider: result.provider
+        });
+      }
     }
 
     // Aucune donnée trouvée
