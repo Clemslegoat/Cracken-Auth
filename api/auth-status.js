@@ -1,7 +1,7 @@
 // api/auth-status.js
 // Endpoint pour le polling des résultats d'authentification
 
-const { getAuthResult, clearAuthResult } = require('./shared-storage.js');
+const { getAuthResult, deleteAuthResult } = require('./shared-storage.js');
 
 module.exports = async function handler(req, res) {
   // Permettre CORS
@@ -43,7 +43,7 @@ module.exports = async function handler(req, res) {
     console.log(`✅ Résultat trouvé pour session ${session_id}:`, authResult);
 
     // Nettoyer le résultat après récupération
-    await clearAuthResult(session_id);
+    deleteAuthResult(session_id);
 
     if (authResult.success) {
       return res.status(200).json({
