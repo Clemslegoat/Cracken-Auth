@@ -124,13 +124,20 @@ module.exports = async function handler(req, res) {
     console.log('Données utilisateur Discord reçues:', userData.username);
 
     // Stocker le résultat pour le polling
+    console.log(`📝 CALLBACK: Stockage des données Discord pour session ${state}`);
+    console.log(`📝 CALLBACK: Données utilisateur Discord:`, userData);
+
     await setAuthResult(state, {
       success: true,
-      email: userData.email || '',
-      name: userData.username || userData.global_name || 'Utilisateur Discord',
-      access_token: tokenInfo.access_token,
+      data: {
+        email: userData.email || '',
+        name: userData.username || userData.global_name || 'Utilisateur Discord',
+        access_token: tokenInfo.access_token
+      },
       provider: 'discord'
     });
+
+    console.log(`✅ CALLBACK: Données Discord stockées avec succès pour session ${state}`);
 
     // Page de succès simple
     const successHtml = `
