@@ -27,58 +27,19 @@ module.exports = async function handler(req, res) {
   console.log(`🔍 Recherche résultat auth pour session: ${session_id}`);
 
   try {
-    // Récupérer la page de succès Google
-    const googleUrl = `https://cracken-auth.vercel.app/api/success-page?session_id=${session_id}&provider=google`;
-    const discordUrl = `https://cracken-auth.vercel.app/api/success-page?session_id=${session_id}&provider=discord`;
-    
-    // Essayer Google d'abord
-    try {
-      const googleResponse = await fetch(googleUrl);
-      if (googleResponse.ok) {
-        const googleHtml = await googleResponse.text();
-        const dataMatch = googleHtml.match(/<div class="hidden-data" id="auth-data">([^<]+)<\/div>/);
-        
-        if (dataMatch) {
-          const encodedData = dataMatch[1];
-          const decodedData = JSON.parse(Buffer.from(encodedData, 'base64').toString());
-          
-          if (decodedData.session_id === session_id) {
-            console.log(`✅ Données Google trouvées pour session ${session_id}`);
-            return res.status(200).json({
-              status: 'success',
-              data: decodedData,
-              provider: 'google'
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.log(`⚠️ Pas de données Google pour session ${session_id}`);
-    }
+    // Utiliser le stockage en mémoire temporaire (solution simple)
+    const { getAuthResult } = require('./shared-storage.js');
 
-    // Essayer Discord ensuite
-    try {
-      const discordResponse = await fetch(discordUrl);
-      if (discordResponse.ok) {
-        const discordHtml = await discordResponse.text();
-        const dataMatch = discordHtml.match(/<div class="hidden-data" id="auth-data">([^<]+)<\/div>/);
-        
-        if (dataMatch) {
-          const encodedData = dataMatch[1];
-          const decodedData = JSON.parse(Buffer.from(encodedData, 'base64').toString());
-          
-          if (decodedData.session_id === session_id) {
-            console.log(`✅ Données Discord trouvées pour session ${session_id}`);
-            return res.status(200).json({
-              status: 'success',
-              data: decodedData,
-              provider: 'discord'
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.log(`⚠️ Pas de données Discord pour session ${session_id}`);
+    console.log(`🔍 Recherche dans le stockage pour session: ${session_id}`);
+    const authResult = await getAuthResult(session_id);
+
+    if (authResult && authResult.success) {
+      console.log(`✅ Données trouvées pour session ${session_id}`);
+      return res.status(200).json({
+        status: 'success',
+        data: authResult.data || authResult,
+        provider: authResult.provider
+      });
     }
 
     // Aucune donnée trouvée
