@@ -124,17 +124,21 @@ module.exports = async function handler(req, res) {
     console.log(`📝 CALLBACK: Stockage des données pour session ${state}`);
     console.log(`📝 CALLBACK: Données utilisateur:`, userData);
 
-    await setAuthResult(state, {
-      success: true,
-      data: {
-        email: userData.email,
-        name: userData.name || userData.email.split('@')[0],
-        access_token: tokenInfo.access_token
-      },
-      provider: 'google'
-    });
+    try {
+      await setAuthResult(state, {
+        success: true,
+        data: {
+          email: userData.email,
+          name: userData.name || userData.email.split('@')[0],
+          access_token: tokenInfo.access_token
+        },
+        provider: 'google'
+      });
 
-    console.log(`✅ CALLBACK: Données stockées avec succès pour session ${state}`);
+      console.log(`✅ CALLBACK: Données stockées avec succès pour session ${state}`);
+    } catch (error) {
+      console.error(`❌ CALLBACK: Erreur stockage pour session ${state}:`, error);
+    }
 
     // Page de succès comme l'ancienne version
     const successHtml = `
