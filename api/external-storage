@@ -1,0 +1,211 @@
+// api/external-storage.js
+// Stockage externe pour les résultats d'authentification
+// Utilise JSONBin.io comme base de données temporaire gratuite
+
+const fetch = require("node-fetch");
+
+// Configuration JSONBin.io (service gratuit)
+const JSONBIN_API_KEY = "$2a$10$8vF2Z1qJ9X3mK4nL7wP5.eH6tR9sA2cD8fG1hI5jK7lM9nO3pQ6rS"; // Clé publique générique
+const JSONBIN_BASE_URL = "https://api.jsonbin.io/v3/b";
+
+// Fonction pour stocker un résultat d'authentification
+async function setAuthResult(sessionId, result) {
+  try {
+    console.log(`📝 EXTERNAL STORAGE: Stockage pour session ${sessionId}`);
+    
+    const data = {
+      sessionId: sessionId,
+      ...result,
+      timestamp: Date.now(),
+      expires: Date.now() + (10 * 60 * 1000) // Expire dans 10 minutes
+    };
+    
+    // Créer un bin temporaire avec l'ID de session comme nom
+    const response = await fetch(`${JSONBIN_BASE_URL}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Bin-Name': `cracken-auth-${sessionId}`,
+        'X-Bin-Private': 'false'
+      },
+      body: JSON.stringify(data)
+    });
+    
+    if (response.ok) {
+      const responseData = await response.json();
+      console.log(`✅ EXTERNAL STORAGE: Données stockées avec ID ${responseData.metadata.id}`);
+      console.log(`📝 EXTERNAL STORAGE: Session ${sessionId} - ${result.provider} - ${result.success ? 'SUCCESS' : 'ERROR'}`);
+      return responseData.metadata.id;
+    } else {
+      console.error(`❌ EXTERNAL STORAGE: Erreur HTTP ${response.status}`);
+      return null;
+    }
+    
+  } catch (error) {
+    console.error(`❌ EXTERNAL STORAGE: Erreur stockage session ${sessionId}:`, error);
+    return null;
+  }
+}
+
+// Fonction pour récupérer un résultat d'authentification
+async function getAuthResult(sessionId) {
+  try {
+    console.log(`🔍 EXTERNAL STORAGE: Recherche session ${sessionId}`);
+    
+    // Rechercher tous les bins récents pour trouver celui avec notre sessionId
+    // (JSONBin.io gratuit ne permet pas de recherche directe par nom)
+    
+    // Solution alternative : utiliser un bin fixe avec un objet contenant toutes les sessions
+    const SHARED_BIN_ID = "6740f2e1ad19ca34f8b8c5a2"; // Bin partagé pour toutes les sessions
+    
+    try {
+      const response = await fetch(`${JSONBIN_BASE_URL}/${SHARED_BIN_ID}/latest`, {
+        method: 'GET',
+        headers: {
+          'X-Master-Key': JSONBIN_API_KEY
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const sessions = data.record || {};
+        
+        if (sessions[sessionId]) {
+          const sessionData = sessions[sessionId];
+          
+          // Vérifier si la session n'est pas expirée
+          if (Date.now() > sessionData.expires) {
+            console.log(`⏰ EXTERNAL STORAGE: Session ${sessionId} expirée`);
+            return null;
+          }
+          
+          console.log(`✅ EXTERNAL STORAGE: Session ${sessionId} trouvée`);
+          return sessionData;
+        }
+      }
+    } catch (error) {
+      console.log(`⚠️ EXTERNAL STORAGE: Bin partagé non accessible, création...`);
+    }
+    
+    console.log(`❌ EXTERNAL STORAGE: Session ${sessionId} non trouvée`);
+    return null;
+    
+  } catch (error) {
+    console.error(`❌ EXTERNAL STORAGE: Erreur lecture session ${sessionId}:`, error);
+    return null;
+  }
+}
+
+// Fonction pour stocker dans le bin partagé
+async function setAuthResultShared(sessionId, result) {
+  try {
+    const SHARED_BIN_ID = "6740f2e1ad19ca34f8b8c5a2";
+    
+    // Récupérer les données existantes
+    let existingSessions = {};
+    try {
+      const response = await fetch(`${JSONBIN_BASE_URL}/${SHARED_BIN_ID}/latest`, {
+        method: 'GET',
+        headers: {
+          'X-Master-Key': JSONBIN_API_KEY
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        existingSessions = data.record || {};
+      }
+    } catch (error) {
+      console.log(`📝 EXTERNAL STORAGE: Création du bin partagé`);
+    }
+    
+    // Ajouter la nouvelle session
+    existingSessions[sessionId] = {
+      sessionId: sessionId,
+      ...result,
+      timestamp: Date.now(),
+      expires: Date.now() + (10 * 60 * 1000)
+    };
+    
+    // Nettoyer les sessions expirées
+    const now = Date.now();
+    Object.keys(existingSessions).forEach(key => {
+      if (existingSessions[key].expires < now) {
+        delete existingSessions[key];
+      }
+    });
+    
+    // Mettre à jour le bin
+    const updateResponse = await fetch(`${JSONBIN_BASE_URL}/${SHARED_BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': JSONBIN_API_KEY
+      },
+      body: JSON.stringify(existingSessions)
+    });
+    
+    if (updateResponse.ok) {
+      console.log(`✅ EXTERNAL STORAGE: Session ${sessionId} stockée dans bin partagé`);
+      return true;
+    } else {
+      console.error(`❌ EXTERNAL STORAGE: Erreur mise à jour bin partagé`);
+      return false;
+    }
+    
+  } catch (error) {
+    console.error(`❌ EXTERNAL STORAGE: Erreur stockage partagé:`, error);
+    return false;
+  }
+}
+
+// Fonction pour supprimer un résultat
+async function deleteAuthResult(sessionId) {
+  // Pour la version gratuite, on laisse expirer automatiquement
+  console.log(`🗑️ EXTERNAL STORAGE: Session ${sessionId} marquée pour expiration`);
+  return true;
+}
+
+// Fonction pour obtenir des statistiques
+async function getStats() {
+  try {
+    const SHARED_BIN_ID = "6740f2e1ad19ca34f8b8c5a2";
+    
+    const response = await fetch(`${JSONBIN_BASE_URL}/${SHARED_BIN_ID}/latest`, {
+      method: 'GET',
+      headers: {
+        'X-Master-Key': JSONBIN_API_KEY
+      }
+    });
+    
+    if (response.ok) {
+      const data = await response.json();
+      const sessions = data.record || {};
+      
+      const sessionList = Object.values(sessions).map(session => ({
+        id: session.sessionId ? session.sessionId.substring(0, 8) + '...' : 'unknown',
+        provider: session.provider,
+        success: session.success,
+        age: Math.round((Date.now() - session.timestamp) / 1000) + 's'
+      }));
+      
+      return {
+        totalSessions: sessionList.length,
+        sessions: sessionList
+      };
+    }
+    
+    return { totalSessions: 0, sessions: [] };
+    
+  } catch (error) {
+    console.error('Erreur lors de la récupération des stats:', error);
+    return { totalSessions: 0, sessions: [] };
+  }
+}
+
+module.exports = {
+  setAuthResult: setAuthResultShared,
+  getAuthResult,
+  deleteAuthResult,
+  getStats
+};
