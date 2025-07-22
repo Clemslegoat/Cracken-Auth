@@ -22,10 +22,5 @@
       "src": "/api/check-discord-auth/(.*)",
       "dest": "/api/check-discord-auth/[session_id].js"
     }
-  ],
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs18.x"
-    }
-  }
+  ]
 }
