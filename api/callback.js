@@ -2,7 +2,7 @@
 // Callback Google OAuth - Version corrigée avec stockage partagé
 
 const fetch = require("node-fetch");
-const { setAuthResult } = require('./shared-storage.js');
+const { setAuthResult } = require('./file-storage.js');
 
 module.exports = async function handler(req, res) {
   const { code, state, error, error_description } = req.query;
