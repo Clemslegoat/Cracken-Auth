@@ -29,11 +29,17 @@ module.exports = async function handler(req, res) {
   console.log(`🔍 Polling auth status pour session: ${session_id}`);
 
   try {
+    // Importer les stats pour voir toutes les sessions stockées
+    const { getStats } = require('./shared-storage.js');
+    const stats = getStats();
+    console.log(`📊 Sessions actuellement stockées:`, stats);
+
     // Récupérer le résultat d'authentification
     const authResult = await getAuthResult(session_id);
-    
+
     if (!authResult) {
       console.log(`⏳ Aucun résultat pour session ${session_id} - en attente`);
+      console.log(`🔍 Sessions disponibles: ${stats.sessions.map(s => s.id).join(', ')}`);
       return res.status(200).json({
         status: 'pending',
         message: 'Authentification en cours...'
