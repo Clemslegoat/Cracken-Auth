@@ -7,7 +7,8 @@ const { setAuthResult } = require('./shared-storage.js');
 module.exports = async function handler(req, res) {
   const { code, state, error, error_description } = req.query;
 
-  console.log('Callback Google reçu:', { code: !!code, state, error });
+  console.log('🔗 CALLBACK GOOGLE reçu:', { code: !!code, state, error });
+  console.log('🆔 CALLBACK GOOGLE - Session ID reçu:', state);
 
   if (error) {
     console.error('Erreur Google OAuth:', error, error_description);
