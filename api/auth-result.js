@@ -1,5 +1,7 @@
 // api/auth-result.js
-// Endpoint pour récupérer les résultats d'authentification - Version simple
+// Endpoint pour récupérer les résultats d'authentification - Version finale
+
+const fetch = require("node-fetch");
 
 module.exports = async function handler(req, res) {
   // Permettre CORS
@@ -27,16 +29,62 @@ module.exports = async function handler(req, res) {
   console.log(`🔍 Recherche résultat auth pour session: ${session_id}`);
 
   try {
-    // Vérifier si on a un résultat dans la variable globale
-    console.log(`🔍 Vérification variable globale...`);
-    console.log(`📊 Global currentAuthResult existe: ${!!global.currentAuthResult}`);
+    // Essayer de récupérer la page de succès qui contient les données
+    console.log(`🌐 Tentative de récupération de la page de succès...`);
     
-    if (global.currentAuthResult) {
-      console.log(`📊 Session dans global: ${global.currentAuthResult.session_id}`);
-      console.log(`📊 Session recherchée: ${session_id}`);
-      console.log(`📊 Timestamp: ${global.currentAuthResult.timestamp}`);
-      console.log(`📊 Age: ${Date.now() - global.currentAuthResult.timestamp}ms`);
+    // Construire l'URL de base de notre domaine
+    const baseUrl = req.headers.host ? `https://${req.headers.host}` : 'https://cracken-auth.vercel.app';
+    
+    // Essayer plusieurs URLs possibles où les données pourraient être stockées
+    const possibleUrls = [
+      `${baseUrl}/api/auth-success?session_check=${session_id}`,
+      `${baseUrl}/api/get-auth-data?session_id=${session_id}`
+    ];
+    
+    for (const url of possibleUrls) {
+      try {
+        console.log(`🔍 Test URL: ${url}`);
+        const response = await fetch(url, { timeout: 5000 });
+        
+        if (response.ok) {
+          const text = await response.text();
+          
+          // Chercher les données dans le HTML
+          const dataMatch = text.match(/<div class="hidden-data" id="auth-data">([^<]+)<\/div>/);
+          const sessionMatch = text.match(/<div class="hidden-data" id="session-id">([^<]+)<\/div>/);
+          
+          if (dataMatch && sessionMatch && sessionMatch[1] === session_id) {
+            console.log(`✅ Données trouvées dans la page de succès pour session ${session_id}`);
+            
+            try {
+              const encodedData = dataMatch[1];
+              const decodedData = JSON.parse(Buffer.from(encodedData, 'base64').toString());
+              
+              if (decodedData.success) {
+                return res.status(200).json({
+                  status: 'success',
+                  data: decodedData.data,
+                  provider: decodedData.provider
+                });
+              } else {
+                return res.status(200).json({
+                  status: 'error',
+                  error: decodedData.error,
+                  provider: decodedData.provider
+                });
+              }
+            } catch (decodeError) {
+              console.error(`❌ Erreur décodage données:`, decodeError);
+            }
+          }
+        }
+      } catch (fetchError) {
+        console.log(`⚠️ Erreur fetch ${url}:`, fetchError.message);
+      }
     }
+    
+    // Vérifier aussi la variable globale (au cas où)
+    console.log(`🔍 Vérification variable globale en fallback...`);
     
     if (global.currentAuthResult && 
         global.currentAuthResult.session_id === session_id &&
@@ -45,10 +93,7 @@ module.exports = async function handler(req, res) {
       console.log(`✅ Données trouvées dans variable globale pour session ${session_id}`);
       
       const result = global.currentAuthResult;
-      
-      // Nettoyer après récupération
       delete global.currentAuthResult;
-      console.log(`🗑️ Variable globale nettoyée`);
       
       if (result.success) {
         return res.status(200).json({
