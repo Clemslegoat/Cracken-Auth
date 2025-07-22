@@ -128,7 +128,7 @@ module.exports = async function handler(req, res) {
       provider: 'google'
     });
 
-    // Page de succès simple
+    // Page de succès comme l'ancienne version
     const successHtml = `
 <!DOCTYPE html>
 <html>
@@ -137,23 +137,63 @@ module.exports = async function handler(req, res) {
     <meta charset="utf-8">
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            background: #0B1317;
-            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #44C283 0%, #2ecc71 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        h1 { color: #44C283; margin-bottom: 20px; }
-        p { margin: 10px 0; }
-        .success { color: #44C283; font-size: 18px; margin: 20px 0; }
+        .container {
+            background: rgba(255,255,255,0.15);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            max-width: 400px;
+            margin: 20px;
+        }
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #27ae60;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 40px;
+        }
+        h1 {
+            color: white;
+            margin: 20px 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .subtitle {
+            color: rgba(255,255,255,0.9);
+            margin: 15px 0;
+            font-size: 16px;
+        }
+        .info {
+            color: rgba(255,255,255,0.8);
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
-    <h1>✅ Connexion Google validée</h1>
-    <div class="success">Authentification réussie !</div>
-    <p>Email: ${userData.email}</p>
-    <p>Vous pouvez fermer cette fenêtre et retourner au launcher.</p>
+    <div class="container">
+        <div class="success-icon">✓</div>
+        <h1>Connexion Google<br/>réussie !</h1>
+        <div class="subtitle">Authentification terminée avec succès.</div>
+        <div class="info">Vous pouvez fermer cette fenêtre et retourner au Cracken Launcher.</div>
+    </div>
 </body>
 </html>`;
 
