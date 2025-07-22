@@ -27,14 +27,19 @@ module.exports = async function handler(req, res) {
   console.log(`🔍 Recherche résultat auth pour session: ${session_id}`);
 
   try {
-    // Utiliser le stockage en mémoire temporaire (solution simple)
-    const { getAuthResult } = require('./shared-storage.js');
+    // Utiliser le stockage fichier persistant
+    const { getAuthResult } = require('./file-storage.js');
 
-    console.log(`🔍 Recherche dans le stockage pour session: ${session_id}`);
+    console.log(`🔍 Recherche dans le stockage fichier pour session: ${session_id}`);
     const authResult = await getAuthResult(session_id);
 
     if (authResult && authResult.success) {
-      console.log(`✅ Données trouvées pour session ${session_id}`);
+      console.log(`✅ Données trouvées dans fichier pour session ${session_id}`);
+
+      // Supprimer le fichier après récupération
+      const { deleteAuthResult } = require('./file-storage.js');
+      await deleteAuthResult(session_id);
+
       return res.status(200).json({
         status: 'success',
         data: authResult.data || authResult,
