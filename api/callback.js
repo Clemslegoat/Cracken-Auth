@@ -120,27 +120,24 @@ module.exports = async function handler(req, res) {
     const userData = await userResponse.json();
     console.log('Données utilisateur Google reçues:', userData.email);
 
-    // Stocker le résultat pour le polling
-    console.log(`📝 CALLBACK: Stockage des données pour session ${state}`);
+    // Créer une URL de succès avec les données encodées
+    console.log(`📝 CALLBACK: Préparation des données pour session ${state}`);
     console.log(`📝 CALLBACK: Données utilisateur:`, userData);
 
-    try {
-      await setAuthResult(state, {
-        success: true,
-        data: {
-          email: userData.email,
-          name: userData.name || userData.email.split('@')[0],
-          access_token: tokenInfo.access_token
-        },
-        provider: 'google'
-      });
+    const successData = {
+      success: true,
+      email: userData.email,
+      name: userData.name || userData.email.split('@')[0],
+      access_token: tokenInfo.access_token,
+      provider: 'google',
+      session_id: state
+    };
 
-      console.log(`✅ CALLBACK: Données stockées avec succès pour session ${state}`);
-    } catch (error) {
-      console.error(`❌ CALLBACK: Erreur stockage pour session ${state}:`, error);
-    }
+    // Encoder les données en base64 pour l'URL
+    const encodedData = Buffer.from(JSON.stringify(successData)).toString('base64');
+    console.log(`✅ CALLBACK: Données encodées pour session ${state}`);
 
-    // Page de succès comme l'ancienne version
+    // Page de succès avec les données intégrées
     const successHtml = `
 <!DOCTYPE html>
 <html>
@@ -197,6 +194,9 @@ module.exports = async function handler(req, res) {
             font-size: 14px;
             line-height: 1.5;
         }
+        .hidden-data {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -205,6 +205,9 @@ module.exports = async function handler(req, res) {
         <h1>Connexion Google<br/>réussie !</h1>
         <div class="subtitle">Authentification terminée avec succès.</div>
         <div class="info">Vous pouvez fermer cette fenêtre et retourner au Cracken Launcher.</div>
+
+        <!-- Données cachées pour le polling -->
+        <div class="hidden-data" id="auth-data">${encodedData}</div>
     </div>
 </body>
 </html>`;
