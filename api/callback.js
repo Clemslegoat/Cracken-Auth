@@ -120,22 +120,29 @@ module.exports = async function handler(req, res) {
     const userData = await userResponse.json();
     console.log('Données utilisateur Google reçues:', userData.email);
 
-    // Créer une URL de succès avec les données encodées
-    console.log(`📝 CALLBACK: Préparation des données pour session ${state}`);
+    // Stocker les données dans le stockage partagé
+    console.log(`📝 CALLBACK: Stockage des données pour session ${state}`);
     console.log(`📝 CALLBACK: Données utilisateur:`, userData);
 
-    const successData = {
+    const authData = {
       success: true,
-      email: userData.email,
-      name: userData.name || userData.email.split('@')[0],
-      access_token: tokenInfo.access_token,
-      provider: 'google',
-      session_id: state
+      data: {
+        email: userData.email,
+        name: userData.name || userData.email.split('@')[0],
+        access_token: tokenInfo.access_token
+      },
+      provider: 'google'
     };
 
-    // Encoder les données en base64 pour l'URL
-    const encodedData = Buffer.from(JSON.stringify(successData)).toString('base64');
-    console.log(`✅ CALLBACK: Données encodées pour session ${state}`);
+    try {
+      await setAuthResult(state, authData);
+      console.log(`✅ CALLBACK: Données stockées avec succès pour session ${state}`);
+    } catch (error) {
+      console.error(`❌ CALLBACK: Erreur stockage pour session ${state}:`, error);
+    }
+
+    // Encoder aussi pour l'affichage (optionnel)
+    const encodedData = Buffer.from(JSON.stringify(authData)).toString('base64');
 
     // Page de succès avec les données intégrées
     const successHtml = `
