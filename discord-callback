@@ -2,7 +2,6 @@
 // Redirection vers le vrai callback Discord dans /api/
 
 module.exports = async function handler(req, res) {
-  // Rediriger vers le vrai callback avec tous les paramètres
   const queryString = new URLSearchParams(req.query).toString();
   const redirectUrl = `/api/discord-callback?${queryString}`;
   
