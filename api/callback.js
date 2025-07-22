@@ -128,47 +128,32 @@ module.exports = async function handler(req, res) {
       provider: 'google'
     });
 
-    // Page de succès
+    // Page de succès simple
     const successHtml = `
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Google Auth - Succès</title>
+    <title>Connexion Google réussie</title>
     <meta charset="utf-8">
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            padding: 50px; 
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            background: #0B1317;
             color: white;
             margin: 0;
         }
-        .container {
-            background: rgba(255,255,255,0.1);
-            padding: 40px;
-            border-radius: 15px;
-            max-width: 500px;
-            margin: 0 auto;
-            backdrop-filter: blur(10px);
-        }
-        h1 { color: #4CAF50; margin-bottom: 20px; }
-        .info { margin: 20px 0; font-size: 14px; opacity: 0.9; }
-        .success-icon { font-size: 48px; margin-bottom: 20px; }
+        h1 { color: #44C283; margin-bottom: 20px; }
+        p { margin: 10px 0; }
+        .success { color: #44C283; font-size: 18px; margin: 20px 0; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="success-icon">🎉</div>
-        <h1>Authentification Google réussie !</h1>
-        <p><strong>Email:</strong> ${userData.email}</p>
-        <p><strong>Nom:</strong> ${userData.name || 'Non fourni'}</p>
-        <p><strong>Session:</strong> ${state}</p>
-        <div class="info">
-            <p>✅ Vous pouvez fermer cette fenêtre</p>
-            <p>🔄 Retournez au Cracken Launcher</p>
-        </div>
-    </div>
+    <h1>✅ Connexion Google validée</h1>
+    <div class="success">Authentification réussie !</div>
+    <p>Email: ${userData.email}</p>
+    <p>Vous pouvez fermer cette fenêtre et retourner au launcher.</p>
 </body>
 </html>`;
 
