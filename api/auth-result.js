@@ -28,17 +28,17 @@ module.exports = async function handler(req, res) {
 
   try {
     // Vérifier si on a un résultat dans la variable globale
-    if (global.currentAuthResult && 
+    if (global.currentAuthResult &&
         global.currentAuthResult.session_id === session_id &&
         global.currentAuthResult.timestamp > Date.now() - 10 * 60 * 1000) {
-      
+
       console.log(`✅ Données trouvées dans variable globale pour session ${session_id}`);
-      
+
       const result = global.currentAuthResult;
-      
+
       // Nettoyer après récupération
       delete global.currentAuthResult;
-      
+
       if (result.success) {
         return res.status(200).json({
           status: 'success',
@@ -54,18 +54,18 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // Aucune donnée trouvée
-    console.log(`⏳ Aucun résultat pour session ${session_id} - en attente`);
-    return res.status(200).json({
-      status: 'pending',
-      message: 'Authentification en cours...'
-    });
+    // Si pas de données, attendre un peu au cas où la redirection est en cours
+    console.log(`🔍 Première vérification échouée pour session ${session_id}, attente de 2 secondes...`);
 
-  } catch (error) {
-    console.error('Erreur lors de la recherche auth result:', error);
-    return res.status(500).json({
-      status: 'error',
-      error: 'Erreur serveur lors de la vérification du statut'
-    });
-  }
-};
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Vérifier à nouveau après l'attente
+    if (global.currentAuthResult &&
+        global.currentAuthResult.session_id === session_id &&
+        global.currentAuthResult.timestamp > Date.now() - 10 * 60 * 1000) {
+
+      console.log(`✅ Données trouvées après attente pour session ${session_id}`);
+
+      const result = global.currentAuthResult;
+      delete global.currentAuthResult;
+
