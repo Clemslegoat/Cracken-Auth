@@ -47,7 +47,7 @@ module.exports = async function handler(req, res) {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        client_id: '1320493893568331806',
+        client_id: '1396600093448077342',  // ← BON CLIENT ID
         client_secret: process.env.DISCORD_CLIENT_SECRET,
         code: code,
         grant_type: 'authorization_code',
