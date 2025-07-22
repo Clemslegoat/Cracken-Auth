@@ -1,0 +1,39 @@
+// api/get-auth-data.js
+// Endpoint pour servir les données d'authentification stockées
+
+module.exports = async function handler(req, res) {
+  const { session_id } = req.query;
+
+  if (!session_id) {
+    return res.status(400).send('Session ID manquant');
+  }
+
+  console.log(`📄 GET AUTH DATA: Demande pour session ${session_id}`);
+
+  // Vérifier si on a les données dans la variable globale
+  if (global.currentAuthResult && 
+      global.currentAuthResult.session_id === session_id &&
+      global.currentAuthResult.timestamp > Date.now() - 10 * 60 * 1000) {
+    
+    console.log(`✅ GET AUTH DATA: Données trouvées pour session ${session_id}`);
+    
+    const result = global.currentAuthResult;
+    const encodedData = Buffer.from(JSON.stringify(result)).toString('base64');
+    
+    // Retourner une page HTML simple avec les données
+    const html = `
+<!DOCTYPE html>
+<html>
+<head><title>Auth Data</title></head>
+<body>
+    <div class="hidden-data" id="auth-data">${encodedData}</div>
+    <div class="hidden-data" id="session-id">${session_id}</div>
+</body>
+</html>`;
+    
+    return res.status(200).send(html);
+  }
+
+  console.log(`❌ GET AUTH DATA: Aucune donnée pour session ${session_id}`);
+  return res.status(404).send('Données non trouvées');
+};
