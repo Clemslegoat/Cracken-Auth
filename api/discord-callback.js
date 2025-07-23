@@ -12,6 +12,7 @@ module.exports = async function handler(req, res) {
   if (error) {
     console.error('Erreur Discord OAuth:', error, error_description);
     
+    // Rediriger vers une page d'erreur avec les détails
     const errorData = {
       success: false,
       error: error_description || error,
@@ -41,13 +42,14 @@ module.exports = async function handler(req, res) {
   try {
     console.log('Échange du code Discord contre un token...');
 
+    // Échanger le code contre un token
     const tokenResponse = await fetch('https://discord.com/api/oauth2/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        client_id: '1396600093448077342',  // ← BON CLIENT ID
+        client_id: '1396600093448077342',
         client_secret: process.env.DISCORD_CLIENT_SECRET,
         code: code,
         grant_type: 'authorization_code',
@@ -87,6 +89,8 @@ module.exports = async function handler(req, res) {
       return res.redirect(`/api/auth-success?data=${encodedError}`);
     }
 
+    // Récupérer les informations utilisateur
+    console.log('Récupération des informations utilisateur Discord...');
     const userResponse = await fetch('https://discord.com/api/users/@me', {
       headers: {
         'Authorization': `Bearer ${tokenInfo.access_token}`
@@ -108,21 +112,24 @@ module.exports = async function handler(req, res) {
     }
 
     const userData = await userResponse.json();
-    console.log('Données utilisateur Discord reçues:', userData.username);
+    console.log('Données utilisateur Discord reçues:', userData.username, 'ID:', userData.id);
 
+    // Créer les données de succès
     console.log(`📝 CALLBACK: Préparation des données Discord pour session ${state}`);
-    
+
     const successData = {
       success: true,
       data: {
         email: userData.email || '',
         name: userData.username || userData.global_name || 'Utilisateur Discord',
+        discord_id: userData.id,  // Ajouter l'ID Discord
         access_token: tokenInfo.access_token
       },
       provider: 'discord',
       session_id: state
     };
     
+    // Encoder les données et rediriger vers la page de succès
     const encodedData = Buffer.from(JSON.stringify(successData)).toString('base64');
     console.log(`✅ CALLBACK: Redirection vers page de succès Discord pour session ${state}`);
     
